@@ -12,16 +12,23 @@ public class ServerAndClientTest {
 		PacketRegistry.getInstance().register(TestPacket.class, 0x01);
 
 		Server server = new Server("127.0.0.1", 1337, 1);
-		server.startAsync();
+		{
+			server.startAsync();
+		}
 
 		Client client = new Client("127.0.0.1", 1337);
-		client.startAsync();
+		{
+			client.register(TestPacket.class, packet -> this.handleTestPacket(packet, server, client));
+			client.startAsync();
+		}
 
 		client.sendPacket(new TestPacket());
+	}
 
+	public void handleTestPacket(TestPacket packet, Server server, Client client) {
+		System.out.println("Test packet received: "+packet);
 		client.shutdown();
 		server.shutdown();
-
 	}
 
 }

@@ -1,12 +1,8 @@
 package de.microsamp.example.netty.server;
 
-import de.microsamp.example.netty.client.Client;
-import de.microsamp.example.netty.common.Packet;
 import de.microsamp.example.netty.common.PacketRegistry;
-import de.microsamp.example.netty.exception.NotConnectedException;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;

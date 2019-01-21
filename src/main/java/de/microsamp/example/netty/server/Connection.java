@@ -22,7 +22,8 @@ public class Connection {
 	}
 
 	public void handle(Packet packet) {
-		//TODO: Handle
+		//TODO
+		this.sendPacket(packet);
 	}
 
 }

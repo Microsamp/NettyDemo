@@ -16,6 +16,10 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
@@ -28,6 +32,8 @@ public class Client {
 	private final Object lock = new Object();
 
 	private Channel channel;
+
+	private final Map<Class<? extends Packet>, List<Consumer<? extends Packet>>> classToListOfPacketHandlers = new ConcurrentHashMap<>();
 
 	@Setter private Consumer<Throwable> exceptionHandler = (exception) -> {
 		exception.printStackTrace();
@@ -86,7 +92,10 @@ public class Client {
 
 							ByteBuf buffer = (ByteBuf) msg;
 							Packet packet = PacketRegistry.getInstance().newInstance(buffer.readInt());
-							System.out.println("Received packet: "+packet);
+							List<Consumer<? extends Packet>> handlers = Client.this.classToListOfPacketHandlers.get(packet.getClass());
+							if(handlers == null || handlers.isEmpty()) return;
+
+							handlers.forEach(handler -> ((Consumer<Packet>) handler).accept(packet));
 						}
 
 						@Override
@@ -118,6 +127,14 @@ public class Client {
 		} catch (InterruptedException ex) {
 			this.exceptionHandler.accept(ex);
 		}
+	}
+
+	public <T extends Packet> void register(Class<T> clazz, Consumer<T> handler) {
+		this.classToListOfPacketHandlers.computeIfAbsent(clazz, c -> new ArrayList<>()).add(handler);
+	}
+
+	public <T extends Packet> void unregister(Class<T> clazz, Consumer<T> handler) {
+		this.classToListOfPacketHandlers.computeIfAbsent(clazz, c -> new ArrayList<>()).remove(handler);
 	}
 
 	/**
